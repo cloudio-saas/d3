@@ -4,7 +4,7 @@ import { Box, Typography, useTheme } from '@mui/material';
 import { D3Props, TriggerCallback } from 'cloudio';
 import * as d3 from 'd3';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { data } from './data';
+import { data } from '../data';
 import P from '../playground';
 
 interface Props {
@@ -24,9 +24,16 @@ function IOD3Chart(props: Props, ref: React.Ref<HTMLDivElement>) {
   const svgRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
-
+  const mounted = useRef(false);
   useEffect(() => {
-    if (svgRef.current) {
+    if (
+      svgRef.current &&
+      dataset.length &&
+      width &&
+      height &&
+      !mounted.current
+    ) {
+      mounted.current = true;
       // Selections
       const svg = d3
         .select(svgRef.current)
@@ -52,15 +59,9 @@ function IOD3Chart(props: Props, ref: React.Ref<HTMLDivElement>) {
         onClickTrigger,
       };
       P.mount(d3props);
-
-      return () => {
-        P.unmount(d3props);
-      };
     }
-  }, [appUid, height, itemId, pageId, theme, width]);
 
-  useEffect(() => {
-    if (svgRef.current && width && height) {
+    if (svgRef.current && mounted.current) {
       // Selections
       const svg = d3
         .select(svgRef.current)
@@ -71,24 +72,50 @@ function IOD3Chart(props: Props, ref: React.Ref<HTMLDivElement>) {
       // clear all previous content on refresh
       const everything = svg.selectAll('*');
       everything.remove();
+
+      if (dataset.length && width && height) {
+        const d3props: D3Props = {
+          svg,
+          dataset,
+          width,
+          height,
+          platform: {},
+          itemId,
+          pageId,
+          appUid,
+          onClickTrigger,
+          theme,
+          rootRef,
+          tooltipRef,
+        };
+
+        P.render(d3props);
+      }
+    }
+  }, [appUid, height, itemId, pageId, theme, width]);
+
+  useEffect(() => {
+    if (svgRef.current && dataset.length) {
+      const svg = d3.select(svgRef.current);
       const d3props: D3Props = {
         svg,
-        dataset,
-        width,
-        height,
+        dataset: [],
+        width: 0,
+        height: 0,
+        theme,
+        rootRef,
+        tooltipRef,
         platform: {},
         itemId,
         pageId,
         appUid,
         onClickTrigger,
-        theme,
-        rootRef,
-        tooltipRef,
       };
-
-      P.render(d3props);
+      return () => {
+        P.unmount(d3props);
+      };
     }
-  }, [appUid, height, itemId, onClickTrigger, pageId, theme, width]);
+  }, [appUid, itemId, pageId, theme]);
 
   return (
     <Box ref={rootRef} sx={{ width, height, color: 'text.primary' }}>
@@ -132,11 +159,11 @@ export default function App() {
           paddingLeft: '60px',
         }}
       >
-        {Object.keys(record).length ? (
-          <Typography color="#fff">
-            Clicked Record: {JSON.stringify(record)}
-          </Typography>
-        ) : null}
+        <Typography color="#fff">
+          {Object.keys(record).length
+            ? `Clicked Record: ${JSON.stringify(record)}`
+            : 'Click on a point to see the record'}
+        </Typography>
       </Box>
       <Box
         sx={{

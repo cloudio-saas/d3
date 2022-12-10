@@ -6,21 +6,27 @@ import { D3Props, d3uid } from 'cloudio';
 
 const TOOLTIP_ON_TOP = true;
 
+// mount function is called when the D3 Chart item is mounted
+// do your initailization here. This function is called only once
+// when the D3 Chart item is mounted. if the user navigates away
+// from the page and comes back, this function will be called again
 function mount(props: D3Props) {
-  // console.log('mount', props);
+  console.log('mount', props);
 }
 
+// render function is called whenever the props passed to the D3 Chart item changes
+// e.g. when the dataset or the width or height of the D3 Chart item changes
 function render(props: D3Props) {
-  // console.log('render', props);
+  console.log('render', props);
   const {
-    dataset,
-    svg,
-    width,
-    height,
-    onClickTrigger,
-    tooltipRef,
-    rootRef,
-    theme,
+    dataset, // this is the dataset passed to the D3 Chart item from the parent data store reference defined above the D3 Chart item
+    svg, // this is the root svg element of the D3 Chart item
+    width, // this is the width of the D3 Chart item
+    height, // this is the height of the D3 Chart item
+    onClickTrigger, // this is the callback function to invoke any On Click Triggers defined inside the D3 Chart item
+    tooltipRef, // the tooltip div element
+    rootRef, // the root div element
+    theme, // the material-ui theme object
   } = props;
   // Accessors
   let xAccessor = (d: Record<string, any>) => parseISO(d.date);
@@ -81,7 +87,7 @@ function render(props: D3Props) {
     })
     .on('click', function (event) {
       if (record) {
-        onClickTrigger?.(event, { record });
+        onClickTrigger?.(event, { record }); // this will invoke any On Click Triggers defined inside the D3 Chart item
       }
     });
 
@@ -259,8 +265,12 @@ function render(props: D3Props) {
   });
 }
 
+// mount function is called when the D3 Chart item is unmounted
+// use this to clean up any work done in the mount function
+// this function will be called when the D3 Chart item is unmounted
+// due to the user navigating away from the page or the D3 Chart item being removed from the dashboard
 function unmount(props: D3Props) {
-  // console.log('unmount', props);
+  console.log('unmount', props);
 }
 
 export default { render, mount, unmount };
